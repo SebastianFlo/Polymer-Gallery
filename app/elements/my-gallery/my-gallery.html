@@ -1,0 +1,260 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-icons/social-icons.html">    
+<link rel="import" href="../../bower_components/iron-collapse/iron-collapse.html">    
+<link rel="import" href="../../bower_components/neon-animation/neon-animated-pages.html">
+<link rel="import" href="../../bower_components/neon-animation/neon-animations.html">
+
+<dom-module id="my-gallery">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+      }
+
+      span,
+      input {
+        @apply(--paper-font-body2);
+      }
+
+      .horizontal {
+        @apply(--layout-horizontal);
+      }
+
+      .justified {
+        @apply(--layout-justified);
+      }
+
+      paper-card {
+        width: 300px;
+        margin: 5px;
+      }
+
+      #pages[detailed] .white {
+        width: 100%;
+        margin: 5px;
+      }
+
+      paper-card.white {
+        --paper-card-header-color: #fff;
+      }
+
+      paper-icon-button {
+        color: var(--paper-grey-600);
+      }
+
+      .divider {
+        height: 50px;
+        width: 100%;
+      }
+
+      .flex-center-justified {
+        @apply(--layout-horizontal);
+        @apply(--layout-center-justified);
+        @apply(--layout-center-align);
+        height: 120px;
+      }
+
+      paper-button[raised] {
+        background-color: var(--paper-grey-200);
+      }
+      
+      paper-icon-button[active] {
+        color: var(--paper-red-500);
+      }
+
+      .collapse-content > * {
+        width: 100px;
+        padding: 15px;
+        border: 1px solid #dedede;
+      }
+    </style>
+    
+    <paper-material elevation="2" class="gallery-menu">
+      
+      <iron-selector selectable="paper-button" selected="{{ category }}" attr-for-selected="id" selected-attribute="raised" class="flex-center-justified">
+        <template id="t-cate" is="dom-repeat" items="[[ categories ]]" as="catName">
+          <paper-button id="[[ catName ]]" on-tap="_changeCategory" tabindex="0">[[ catName ]]</paper-button> 
+        </template>
+      </iron-selector>
+
+    </paper-material>
+
+    <div class="divider"></div>
+
+    <paper-button on-tap="_toggleFilters" tabindex="0">Filters</paper-button> 
+
+    <iron-collapse opened="[[ showFilters ]]">
+      <div class="collapse-content horizontal">
+        <div>Size</div>
+        <div>Material</div>
+        <div>Price</div>
+      </div>
+    </iron-collapse>
+
+    <div class="divider"></div>
+
+    <div id="pages" class="horizontal" detailed$="[[ hasCategory ]]">
+      <template is="dom-repeat" items="[[ catImages ]]" as="catItem" filter="{{ _propertyFilter('category', category) }}">
+        <paper-card heading="[[ catItem.title ]]" image="[[ catItem.image ]]" class="white" style="margin-right:4px;">
+          <div class="card-actions horizontal justified">
+            <paper-icon-button toggles active="{{ catItem.favorite }}" icon="favorite"></paper-icon-button>
+            <paper-icon-button toggles active="{{ catItem.bookmarked }}" icon="bookmark"></paper-icon-button>
+            <paper-icon-button on-tap="_goShare" icon="social:share"></paper-icon-button>
+          </div>
+        </paper-card>
+      </template>
+    </div>
+
+
+  </template>
+
+  <script>
+    class MyGallery {
+      beforeRegister() {
+        this.is = 'my-gallery';
+        this.properties = {
+          category: String,
+          name: String,
+          catImages: {
+            type: Array,
+            value: () => {
+              return [
+                {
+                  title: 'Cat1',
+                  category: 'category 1',
+                  image: 'https://unsplash.it/800/400?image=0',
+                  favorite: false,
+                  bookmarked: false
+                },
+                {
+                  title: 'Cat2',
+                  category: 'category 2',
+                  image: 'https://unsplash.it/800/400?image=1',
+                  favorite: false,
+                  bookmarked: false
+                },
+                {
+                  title: 'Cat3',
+                  category: 'category 3',
+                  image: 'https://unsplash.it/800/400?image=2',
+                  favorite: false,
+                  bookmarked: false
+                },
+                {
+                  title: 'Cat4',
+                  category: 'category 4',
+                  image: 'https://unsplash.it/800/400?image=3',
+                  favorite: false,
+                  bookmarked: false
+                },
+                {
+                  title: 'Cat1',
+                  category: 'category 1',
+                  image: 'https://unsplash.it/800/400?image=4',
+                  favorite: false,
+                  bookmarked: false
+                },
+                {
+                  title: 'Cat2',
+                  category: 'category 2',
+                  image: 'https://unsplash.it/800/400?image=5',
+                  favorite: false,
+                  bookmarked: false
+                },
+                {
+                  title: 'Cat3',
+                  category: 'category 3',
+                  image: 'https://unsplash.it/800/400?image=6',
+                  favorite: false,
+                  bookmarked: false
+                },
+                {
+                  title: 'Cat4',
+                  category: 'category 4',
+                  image: 'https://unsplash.it/800/400?image=7',
+                  favorite: false,
+                  bookmarked: false
+                }
+              ];
+            },
+          }, 
+          hasCategory: {
+            type: Boolean,
+            computed: "_computeHasCategory(category)"
+          },   
+          categories: {
+              type: Array,
+              computed: "_groupBy(catImages.*, 'category')"
+          },
+          showFilters: Boolean
+        };
+      }
+      created() {}
+      ready() {
+      }
+      attached() {}
+      detached() {}
+      attributeChanged() {}
+      
+      _toggleFilters() {
+        this.showFilters = !this.showFilters;
+      }
+      _propertyFilter(property, value) {
+        if (!value) {
+          return;
+        }
+        return (item) => {
+          if (item[property] === value) {
+            item.filtered = true;
+            return true;
+          };
+        }
+      };
+
+      _changeCategory(e) {
+        if (e.currentTarget.id === this.category) {
+          this.async(() => {
+            this.category = '';
+          })
+        }
+      };
+
+      _toggleCardClass(item) {
+        item.classList.toggle('filtered');
+      }
+
+      _groupBy(catsInfo, property) {
+        return catsInfo.base.reduce((acc, curr) => {
+          if (acc.indexOf(curr[property]) === -1) {
+            acc.push(curr[property]);
+          }
+          return acc;
+        }, [])
+      };
+
+      _goShare() {
+        window.open('https://www.facebook.com', '_blank');
+      }
+
+      _computeHasCategory(category) {
+        return !!category;
+      }
+
+    }
+
+    Polymer(MyGallery);
+  </script>
+</dom-module>
