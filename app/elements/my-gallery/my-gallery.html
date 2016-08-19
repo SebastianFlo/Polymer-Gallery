@@ -33,12 +33,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         @apply(--layout-horizontal);
       }
 
+      .wrap {
+        @apply(--layout-wrap);
+      }
+
       .justified {
         @apply(--layout-justified);
       }
 
       paper-card {
-        width: 300px;
         margin: 5px;
       }
 
@@ -84,7 +87,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     
     <paper-material elevation="2" class="gallery-menu">
       
-      <iron-selector selectable="paper-button" selected="{{ category }}" attr-for-selected="id" selected-attribute="raised" class="flex-center-justified">
+      <iron-selector selectable="paper-button" selected="{{ selectedItem }}" attr-for-selected="id" selected-attribute="raised" class="flex-center-justified">
         <template id="t-cate" is="dom-repeat" items="[[ categories ]]" as="catName">
           <paper-button id="[[ catName ]]" on-tap="_changeCategory" tabindex="0">[[ catName ]]</paper-button> 
         </template>
@@ -106,16 +109,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="divider"></div>
 
-    <div id="pages" class="horizontal" detailed$="[[ hasCategory ]]">
-      <template is="dom-repeat" items="[[ catImages ]]" as="catItem" filter="{{ _propertyFilter('category', category) }}">
-        <paper-card heading="[[ catItem.title ]]" image="[[ catItem.image ]]" class="white" style="margin-right:4px;">
-          <div class="card-actions horizontal justified">
-            <paper-icon-button toggles active="{{ catItem.favorite }}" icon="favorite"></paper-icon-button>
-            <paper-icon-button toggles active="{{ catItem.bookmarked }}" icon="bookmark"></paper-icon-button>
-            <paper-icon-button on-tap="_goShare" icon="social:share"></paper-icon-button>
-          </div>
-        </paper-card>
-      </template>
+    <div id="pages" class="wrap horizontal" detailed$="[[ hasCategory ]]">
+      <iron-selector selectable="paper-card" selected="{{ selectedItem }}" attr-for-selected="id">
+        <template is="dom-repeat" items="[[ catImages ]]" as="catItem" filter="{{ _propertyFilter(itemFilter, selectedItem) }}">
+          <paper-card id="[[ catItem.title ]]" 
+                      on-tap="_changeCategory"
+                      heading="[[ catItem.title ]]"
+                      image="[[ catItem.image ]]" 
+                      class="white"
+                      style$="margin-right:4px; width: {{ card_width }}px">
+            <div class="card-actions horizontal justified">
+              <paper-icon-button toggles active="{{ catItem.favorite }}" icon="favorite"></paper-icon-button>
+              <paper-icon-button toggles active="{{ catItem.bookmarked }}" icon="bookmark"></paper-icon-button>
+              <paper-icon-button on-tap="_goShare" icon="social:share"></paper-icon-button>
+            </div>
+          </paper-card>
+        </template>
+      </iron-selector>
     </div>
 
 
@@ -126,6 +136,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       beforeRegister() {
         this.is = 'my-gallery';
         this.properties = {
+          card_width: {
+            type: String,
+            value: '300'
+          },
+          itemFilter: {
+            type: String,
+            value: 'category'
+          },
+          selectedItem: String,
           category: String,
           name: String,
           catImages: {
@@ -133,56 +152,56 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             value: () => {
               return [
                 {
-                  title: 'Cat1',
+                  title: 'Cat1 - Image 1',
                   category: 'category 1',
                   image: 'https://unsplash.it/800/400?image=0',
                   favorite: false,
                   bookmarked: false
                 },
                 {
-                  title: 'Cat2',
+                  title: 'Cat2 - Image 1',
                   category: 'category 2',
                   image: 'https://unsplash.it/800/400?image=1',
                   favorite: false,
                   bookmarked: false
                 },
                 {
-                  title: 'Cat3',
+                  title: 'Cat3 - Image 1',
                   category: 'category 3',
                   image: 'https://unsplash.it/800/400?image=2',
                   favorite: false,
                   bookmarked: false
                 },
                 {
-                  title: 'Cat4',
+                  title: 'Cat4 - Image 1',
                   category: 'category 4',
                   image: 'https://unsplash.it/800/400?image=3',
                   favorite: false,
                   bookmarked: false
                 },
                 {
-                  title: 'Cat1',
+                  title: 'Cat1 - Image 2',
                   category: 'category 1',
                   image: 'https://unsplash.it/800/400?image=4',
                   favorite: false,
                   bookmarked: false
                 },
                 {
-                  title: 'Cat2',
+                  title: 'Cat2 - Image 2',
                   category: 'category 2',
                   image: 'https://unsplash.it/800/400?image=5',
                   favorite: false,
                   bookmarked: false
                 },
                 {
-                  title: 'Cat3',
+                  title: 'Cat3 - Image 2',
                   category: 'category 3',
                   image: 'https://unsplash.it/800/400?image=6',
                   favorite: false,
                   bookmarked: false
                 },
                 {
-                  title: 'Cat4',
+                  title: 'Cat4 - Image 2',
                   category: 'category 4',
                   image: 'https://unsplash.it/800/400?image=7',
                   favorite: false,
@@ -208,7 +227,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       attached() {}
       detached() {}
       attributeChanged() {}
-      
+
       _toggleFilters() {
         this.showFilters = !this.showFilters;
       }
@@ -225,11 +244,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       };
 
       _changeCategory(e) {
-        if (e.currentTarget.id === this.category) {
-          this.async(() => {
-            this.category = '';
-          })
+        if (e.currentTarget.localName === 'paper-card') {
+          this.card_width = '300';
+          this.itemFilter = 'title';
+        } else {
+          this.card_width = '800';
+          this.itemFilter = 'category';
         }
+        if (e.currentTarget.id === this.selectedItem) {
+          this.card_width = '300';
+          this.async(() => {
+            this.selectedItem = '';
+          })
+        } else if (!e.currentTarget.classList.contains('card-actions')) {
+          console.log('clicked card');
+        }  
       };
 
       _toggleCardClass(item) {
