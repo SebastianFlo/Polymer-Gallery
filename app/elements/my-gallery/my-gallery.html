@@ -145,6 +145,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             value: 'category'
           },
           selectedItem: String,
+          ignoreSelected: false,
           category: String,
           name: String,
           catImages: {
@@ -235,6 +236,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         if (!value) {
           return;
         }
+        if (this.ignoreSelected) {
+          return true;
+        }
+
         return (item) => {
           if (item[property] === value) {
             item.filtered = true;
@@ -244,21 +249,36 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       };
 
       _changeCategory(e) {
-        if (e.currentTarget.localName === 'paper-card') {
-          this.card_width = '300';
-          this.itemFilter = 'title';
-        } else {
-          this.card_width = '800';
-          this.itemFilter = 'category';
+        // if action buttons, do nothing
+        if (e.target.localName === 'paper-icon-button') {
+          this.ignoreSelected = true;
+        } 
+        else {
+          this.ignoreSelected = false;
+          // if menu item clicked show categories
+          if (e.currentTarget.localName === 'paper-button') {
+            if (this.itemFilter === 'category') {
+              this.async(() => {
+                this.itemFilter = '';
+                this.selectedItem = '';
+              })
+            } else {
+              this.card_width = '300';
+              this.itemFilter = 'category';
+            }
+          } else if (e.currentTarget.localName === 'paper-card') {
+            if (e.currentTarget.id === this.selectedItem) {
+              this.card_width = '300';
+              this.async(() => {
+                this.itemFilter = '';
+                this.selectedItem = '';
+              })
+            } else {
+              this.card_width = '800';
+              this.itemFilter = 'title';
+            }
+          }
         }
-        if (e.currentTarget.id === this.selectedItem) {
-          this.card_width = '300';
-          this.async(() => {
-            this.selectedItem = '';
-          })
-        } else if (!e.currentTarget.classList.contains('card-actions')) {
-          console.log('clicked card');
-        }  
       };
 
       _toggleCardClass(item) {
